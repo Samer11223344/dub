@@ -5,7 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>خدمات ذيبان AI - لوحة التحكم</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
@@ -64,55 +63,6 @@
     </main>
 
     <footer class="w-full border-t border-slate-800 bg-slate-900/40 py-8 mt-12"><div class="max-w-7xl mx-auto px-6 text-center text-sm text-slate-400">جميع الحقوق محفوظة © 2026 ذيبان AI 🐺</div></footer>
-
-    <script src="supabase.js"></script>
-    <script>
-        const { supabase, getProfile } = window.dhiban;
-
-        async function checkAuthAndLoadData() {
-            const { data: { session } } = await supabase.auth.getSession();
-            if (!session) {
-                window.location.replace('login.html');
-                return;
-            }
-
-            const profile = await getProfile(session.user.id);
-            if (!profile) {
-                document.getElementById('trialStatus').textContent = 'لم يُنشأ ملف الحساب بعد. شغّل ملف SQL المرفق في Supabase ثم أعد المحاولة.';
-                return;
-            }
-
-            const fullName = `${profile.first_name || ''} ${profile.last_name || ''}`.trim() || 'يا ذيبان';
-            document.getElementById('userGreeting').textContent = `أهلاً بك، ${fullName} 🐺`;
-            document.getElementById('profileName').textContent = fullName;
-            document.getElementById('profileEmail').textContent = session.user.email || '—';
-            document.getElementById('profilePhone').textContent = profile.phone || 'غير مضاف';
-            document.getElementById('profileRequests').textContent = profile.free_requests_left;
-
-            if (profile.is_subscribed) {
-                document.getElementById('subBadge').textContent = profile.subscription_type === 'yearly' ? 'مشترك (سنوي ⭐)' : 'مشترك (شهري 🚀)';
-                document.getElementById('trialStatus').textContent = 'حسابك مشترك ويمكنك استخدام الخدمات المتاحة.';
-            } else {
-                document.getElementById('trialStatus').textContent = `رصيد التجربة المجانية المتبقي لديك: ${profile.free_requests_left} طلب.`;
-            }
-        }
-
-        document.getElementById('logoutBtn').addEventListener('click', async () => {
-            await supabase.auth.signOut();
-            window.location.replace('index.html');
-        });
-
-        document.querySelectorAll('.plan-btn').forEach((button) => {
-            button.addEventListener('click', () => {
-                const plan = button.dataset.plan === 'yearly' ? 'السنوية' : 'الشهرية';
-                alert(`الباقة ${plan} جاهزة، وسيتم تفعيل الدفع الإلكتروني بعد ربط بوابة دفع آمنة.`);
-            });
-        });
-
-        checkAuthAndLoadData().catch((error) => {
-            console.error(error);
-            document.getElementById('trialStatus').textContent = 'تعذر تحميل بيانات الحساب. تأكد من تشغيل ملف SQL ومن إعداد سياسات Supabase.';
-        });
-    </script>
+    <script type="module" src="services.js"></script>
 </body>
 </html>

@@ -1,4 +1,6 @@
-const { supabase, errorMessage } = window.dhiban;
+import './firebase.js';
+
+const { auth, signInWithEmailAndPassword, arabicError } = window.dhibanFirebase;
 const form = document.getElementById('loginForm');
 const submitBtn = form.querySelector('button[type="submit"]');
 const status = document.getElementById('formStatus');
@@ -12,14 +14,12 @@ form.addEventListener('submit', async (event) => {
     const email = document.getElementById('email').value.trim().toLowerCase();
     const password = document.getElementById('password').value;
 
-    const { error } = await supabase.auth.signInWithPassword({ email, password });
-
-    if (error) {
-        status.textContent = errorMessage(error);
+    try {
+        await signInWithEmailAndPassword(auth, email, password);
+        window.location.replace('services.html');
+    } catch (error) {
+        status.textContent = arabicError(error);
         submitBtn.disabled = false;
         submitBtn.textContent = 'تسجيل الدخول 🔓';
-        return;
     }
-
-    window.location.replace('services.html');
 });
