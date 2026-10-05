@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>خدمات ذيبان AI - لوحة التحكم</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <header class="w-full border-b border-slate-800 bg-slate-900/60 backdrop-blur-md sticky top-0 z-50">
+        <div class="max-w-7xl mx-auto px-6 h-20 flex items-center justify-between">
+            <div class="flex items-center gap-3">
+                <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-cyan-500 to-blue-600 flex items-center justify-center text-xl font-black shadow-lg shadow-cyan-500/20">🐺</div>
+                <span class="text-2xl font-black tracking-wider bg-gradient-to-r from-cyan-400 to-blue-500 bg-clip-text text-transparent">ذيبان AI - الخدمات</span>
+            </div>
+            <div class="flex items-center gap-4">
+                <span id="userGreeting" class="text-sm font-bold text-cyan-300"></span>
+                <button id="logoutBtn" class="px-4 py-2 rounded-xl bg-red-500/10 hover:bg-red-500/20 text-red-400 font-bold border border-red-500/20 transition text-sm">تسجيل الخروج</button>
+            </div>
+        </div>
+    </header>
+
+    <main class="flex-grow max-w-6xl mx-auto px-6 py-12 w-full space-y-10">
+        <div class="p-8 rounded-3xl bg-slate-900 border border-slate-800 shadow-xl flex flex-col md:flex-row items-center justify-between gap-6">
+            <div class="space-y-2">
+                <h2 class="text-2xl font-black">أهلاً بك في خدمات الذكاء الاصطناعي 🚀</h2>
+                <p id="trialStatus" class="text-sm text-slate-400">جاري التحقق من بيانات حسابك ورصيد الطلبات...</p>
+            </div>
+            <div class="px-6 py-4 rounded-2xl bg-cyan-500/10 border border-cyan-500/30 text-center">
+                <span class="block text-xs text-slate-400">حالة الاشتراك</span>
+                <span id="subBadge" class="text-lg font-bold text-cyan-400">مجاني (تجربة)</span>
+            </div>
+        </div>
+
+        <section class="p-8 rounded-3xl bg-slate-900 border border-slate-800 shadow-xl">
+            <h3 class="text-2xl font-black mb-6">بيانات حسابك</h3>
+            <div class="grid sm:grid-cols-2 gap-4 text-sm">
+                <div class="rounded-xl bg-slate-800/60 p-4"><span class="text-slate-400 block">الاسم</span><strong id="profileName">—</strong></div>
+                <div class="rounded-xl bg-slate-800/60 p-4"><span class="text-slate-400 block">البريد الإلكتروني</span><strong id="profileEmail" dir="ltr" class="inline-block">—</strong></div>
+                <div class="rounded-xl bg-slate-800/60 p-4"><span class="text-slate-400 block">رقم الهاتف</span><strong id="profilePhone">—</strong></div>
+                <div class="rounded-xl bg-slate-800/60 p-4"><span class="text-slate-400 block">طلبات التجربة المتبقية</span><strong id="profileRequests">—</strong></div>
+            </div>
+        </section>
+
+        <section class="space-y-6">
+            <div class="text-center space-y-2">
+                <h3 class="text-3xl font-black">باقات اشتراك ذيبان 💎</h3>
+                <p class="text-slate-400 text-sm">اختر الباقة المناسبة لمتجرك. الدفع الإلكتروني سيُربط لاحقاً عبر بوابة دفع آمنة.</p>
+            </div>
+            <div class="grid md:grid-cols-2 gap-8 max-w-3xl mx-auto pt-4">
+                <div class="bg-slate-900 border border-slate-800 rounded-3xl p-8 space-y-6 flex flex-col justify-between hover:border-cyan-500/50 transition">
+                    <div class="space-y-4"><span class="px-3 py-1 rounded-full bg-blue-500/10 text-blue-400 text-xs font-bold">باقة أساسية</span><h4 class="text-2xl font-bold">الاشتراك الشهري</h4><div class="text-4xl font-black text-cyan-400">49 <span class="text-lg text-slate-400 font-normal">ر.س / شهرياً</span></div></div>
+                    <button data-plan="monthly" class="plan-btn w-full py-3 rounded-xl bg-slate-800 hover:bg-slate-700 text-cyan-400 font-bold border border-cyan-500/30 transition">اشترك شهرياً</button>
+                </div>
+                <div class="bg-gradient-to-b from-slate-900 to-slate-900/80 border-2 border-cyan-500/50 rounded-3xl p-8 space-y-6 flex flex-col justify-between relative shadow-lg">
+                    <div class="absolute -top-3 left-8 px-3 py-1 bg-cyan-500 text-slate-950 font-bold text-xs rounded-full">الأكثر توفيراً 🌟</div>
+                    <div class="space-y-4"><span class="px-3 py-1 rounded-full bg-cyan-500/10 text-cyan-400 text-xs font-bold">باقة احترافية</span><h4 class="text-2xl font-bold">الاشتراك السنوي</h4><div class="text-4xl font-black text-cyan-400">399 <span class="text-lg text-slate-400 font-normal">ر.س / سنوياً</span></div></div>
+                    <button data-plan="yearly" class="plan-btn w-full py-3 rounded-xl btn-primary-custom text-base text-slate-950 font-black">اشترك سنوياً</button>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <footer class="w-full border-t border-slate-800 bg-slate-900/40 py-8 mt-12"><div class="max-w-7xl mx-auto px-6 text-center text-sm text-slate-400">جميع الحقوق محفوظة © 2026 ذيبان AI 🐺</div></footer>
+
+    <script src="supabase.js"></script>
+    <script>
+        const { supabase, getProfile } = window.dhiban;
+
+        async function checkAuthAndLoadData() {
+            const { data: { session } } = await supabase.auth.getSession();
+            if (!session) {
+                window.location.replace('login.html');
+                return;
+            }
+
+            const profile = await getProfile(session.user.id);
+            if (!profile) {
+                document.getElementById('trialStatus').textContent = 'لم يُنشأ ملف الحساب بعد. شغّل ملف SQL المرفق في Supabase ثم أعد المحاولة.';
+                return;
+            }
+
+            const fullName = `${profile.first_name || ''} ${profile.last_name || ''}`.trim() || 'يا ذيبان';
+            document.getElementById('userGreeting').textContent = `أهلاً بك، ${fullName} 🐺`;
+            document.getElementById('profileName').textContent = fullName;
+            document.getElementById('profileEmail').textContent = session.user.email || '—';
+            document.getElementById('profilePhone').textContent = profile.phone || 'غير مضاف';
+            document.getElementById('profileRequests').textContent = profile.free_requests_left;
+
+            if (profile.is_subscribed) {
+                document.getElementById('subBadge').textContent = profile.subscription_type === 'yearly' ? 'مشترك (سنوي ⭐)' : 'مشترك (شهري 🚀)';
+                document.getElementById('trialStatus').textContent = 'حسابك مشترك ويمكنك استخدام الخدمات المتاحة.';
+            } else {
+                document.getElementById('trialStatus').textContent = `رصيد التجربة المجانية المتبقي لديك: ${profile.free_requests_left} طلب.`;
+            }
+        }
+
+        document.getElementById('logoutBtn').addEventListener('click', async () => {
+            await supabase.auth.signOut();
+            window.location.replace('index.html');
+        });
+
+        document.querySelectorAll('.plan-btn').forEach((button) => {
+            button.addEventListener('click', () => {
+                const plan = button.dataset.plan === 'yearly' ? 'السنوية' : 'الشهرية';
+                alert(`الباقة ${plan} جاهزة، وسيتم تفعيل الدفع الإلكتروني بعد ربط بوابة دفع آمنة.`);
+            });
+        });
+
+        checkAuthAndLoadData().catch((error) => {
+            console.error(error);
+            document.getElementById('trialStatus').textContent = 'تعذر تحميل بيانات الحساب. تأكد من تشغيل ملف SQL ومن إعداد سياسات Supabase.';
+        });
+    </script>
+</body>
+</html>
