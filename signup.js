@@ -1,38 +1,4 @@
 import './firebase.js';
-
-const {
-    auth,
-    createUserWithEmailAndPassword,
-    updateProfile,
-    createProfile,
-    arabicError
-} = window.dhibanFirebase;
-
-const form = document.getElementById('signupForm');
-const submitBtn = document.getElementById('submitBtn');
-const status = document.getElementById('formStatus');
-
-form.addEventListener('submit', async (event) => {
-    event.preventDefault();
-    status.textContent = '';
-    submitBtn.disabled = true;
-    submitBtn.textContent = 'جاري إنشاء الحساب...';
-
-    const firstName = document.getElementById('firstName').value.trim();
-    const lastName = document.getElementById('lastName').value.trim();
-    const phone = document.getElementById('phone').value.trim();
-    const birthDate = document.getElementById('birthDate').value;
-    const email = document.getElementById('email').value.trim().toLowerCase();
-    const password = document.getElementById('password').value;
-
-    try {
-        const credentials = await createUserWithEmailAndPassword(auth, email, password);
-        await updateProfile(credentials.user, { displayName: `${firstName} ${lastName}`.trim() });
-        await createProfile(credentials.user, { firstName, lastName, phone, birthDate });
-        window.location.replace('services.html');
-    } catch (error) {
-        status.textContent = arabicError(error);
-        submitBtn.disabled = false;
-        submitBtn.textContent = 'تسجيل الحساب 🚀';
-    }
-});
+const {auth,createUserWithEmailAndPassword,updateProfile,createProfile,sendEmailVerification,verificationSettings,arabicError}=window.dhibanFirebase;
+const form=document.getElementById('signupForm'),btn=document.getElementById('submitBtn'),status=document.getElementById('formStatus');
+form.addEventListener('submit',async(e)=>{e.preventDefault();status.className='form-status';status.textContent='';btn.disabled=true;btn.textContent='جاري إنشاء حسابك...';const firstName=document.getElementById('firstName').value.trim(),lastName=document.getElementById('lastName').value.trim(),phone=document.getElementById('phone').value.trim(),birthDate=document.getElementById('birthDate').value,email=document.getElementById('email').value.trim().toLowerCase(),password=document.getElementById('password').value;try{const cred=await createUserWithEmailAndPassword(auth,email,password);await updateProfile(cred.user,{displayName:`${firstName} ${lastName}`.trim()});await createProfile(cred.user,{firstName,lastName,phone,birthDate});await sendEmailVerification(cred.user,verificationSettings);status.className='form-status success';status.textContent='تم إنشاء الحساب. أرسلنا رسالة توثيق إلى بريدك: افتحها واضغط «مرحبا بك في ذيبان — وثّق حسابك وابدأ الآن»، ثم ارجع وسجّل الدخول.';form.reset();btn.disabled=false;btn.textContent='إنشاء الحساب 🚀';}catch(error){status.textContent=arabicError(error);btn.disabled=false;btn.textContent='إنشاء الحساب 🚀';}});

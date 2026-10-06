@@ -8,8 +8,10 @@ service cloud.firestore {
       allow update: if request.auth != null
                     && request.auth.uid == userId
                     && request.resource.data.diff(resource.data).affectedKeys().hasOnly([
-                      'firstName', 'lastName', 'phone', 'birthDate', 'updatedAt'
-                    ]);
+                      'firstName', 'lastName', 'phone', 'birthDate', 'updatedAt', 'emailVerified'
+                    ])
+                    && (!request.resource.data.diff(resource.data).affectedKeys().hasAny(['emailVerified'])
+                        || request.auth.token.email_verified == true);
       allow delete: if false;
     }
   }

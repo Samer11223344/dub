@@ -1,14 +1,16 @@
-// اتصال Firebase المشترك لمشروع ذيبان AI
-// هذه بيانات Web App العامة وليست Service Account أو Secret Key.
+// Firebase المشترك — ذيبان AI
 import { initializeApp } from 'https://www.gstatic.com/firebasejs/12.19.0/firebase-app.js';
 import {
     getAuth,
     setPersistence,
     browserLocalPersistence,
+    sendEmailVerification,
+    sendPasswordResetEmail,
+    reload,
+    signOut,
     onAuthStateChanged,
     createUserWithEmailAndPassword,
     signInWithEmailAndPassword,
-    signOut,
     updateProfile
 } from 'https://www.gstatic.com/firebasejs/12.19.0/firebase-auth.js';
 import {
@@ -31,9 +33,12 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db = getFirestore(app);
-
-// يحافظ على تسجيل الدخول عند إغلاق المتصفح.
 await setPersistence(auth, browserLocalPersistence);
+
+const verificationSettings = {
+    url: `${window.location.origin}/login.html`,
+    handleCodeInApp: false
+};
 
 function arabicError(error) {
     const code = error?.code || '';
@@ -46,7 +51,9 @@ function arabicError(error) {
         'auth/wrong-password': 'البريد الإلكتروني أو كلمة المرور غير صحيحة.',
         'auth/too-many-requests': 'محاولات كثيرة. انتظر قليلاً ثم حاول مرة أخرى.',
         'auth/network-request-failed': 'تعذر الاتصال بالإنترنت. حاول مرة أخرى.',
-        'permission-denied': 'تم رفض الوصول إلى قاعدة البيانات. تأكد من نشر Firestore Rules.'
+        'auth/operation-not-allowed': 'تسجيل البريد وكلمة المرور غير مفعّل من Firebase.',
+        'auth/unauthorized-continue-uri': 'الدومين غير مضاف إلى Authorized domains في Firebase.',
+        'permission-denied': 'تم رفض الوصول إلى Firestore. تأكد من نشر القواعد.'
     };
     return messages[code] || error?.message || 'حدث خطأ غير متوقع. حاول مرة أخرى.';
 }
@@ -62,13 +69,21 @@ async function createProfile(user, profileData) {
         lastName: profileData.lastName,
         phone: profileData.phone,
         birthDate: profileData.birthDate,
+        email: user.email || '',
+        emailVerified: false,
         freeRequestsLeft: 1,
         isSubscribed: false,
         subscriptionType: null,
-        email: user.email || '',
         createdAt: serverTimestamp(),
         updatedAt: serverTimestamp()
     });
+}
+
+async function syncEmailVerification(user) {
+    await setDoc(doc(db, 'profiles', user.uid), {
+        emailVerified: user.emailVerified,
+        updatedAt: serverTimestamp()
+    }, { merge: true });
 }
 
 window.dhibanFirebase = {
@@ -82,5 +97,10 @@ window.dhibanFirebase = {
     updateProfile,
     getProfile,
     createProfile,
+    syncEmailVerification,
+    sendEmailVerification,
+    sendPasswordResetEmail,
+    reload,
+    verificationSettings,
     arabicError
 };

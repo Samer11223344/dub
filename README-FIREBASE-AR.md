@@ -1,39 +1,57 @@
-# ذيبان AI — نسخة Firebase
+# ذيبان AI — النسخة المحسنة المرتبطة بـFirebase
 
-هذه النسخة لا تستخدم Supabase. الربط الآن مع:
+## ما تم تنفيذه
 
-- Firebase Authentication لتسجيل الحسابات والدخول.
-- Cloud Firestore لحفظ بيانات `profiles`.
-- Vercel لاستضافة ملفات HTML/CSS/JavaScript.
+- إنشاء الحساب بالبريد وكلمة المرور.
+- إرسال رابط توثيق إلى البريد بعد التسجيل.
+- منع دخول الخدمات قبل توثيق البريد.
+- عرض حالة البريد «موثق ✓» داخل بيانات الحساب، ومزامنتها مع Firestore بأمان.
+- رابط «نسيت كلمة المرور؟» يرسل رابط إعادة تعيين آمن إلى البريد.
+- تباين واضح للحقول: خلفية فاتحة ونص داكن أثناء الكتابة.
+- واجهة تقنية متجاوبة للجوال والكمبيوتر.
+- هيدر وفوتر وروابط تواصل وهوية موحدة.
+- الاشتراك والرصيد محميان من تعديل المستخدم عبر Firestore Rules.
 
-## إعداد Firebase
+## إعداد Firebase قبل الرفع
 
-1. من Firebase فعّل:
-   `Build → Authentication → Sign-in method → Email/Password`.
-2. تأكد من إنشاء Firestore Database.
-3. من Firestore افتح تبويب **Rules**.
-4. الصق محتوى ملف `firestore.rules` ثم اضغط **Publish**.
-5. من Authentication > Settings > Authorized domains، أضف:
+1. من `Authentication → Sign-in method` فعّل `Email/Password` فقط.
+2. لا تفعّل `Email link (passwordless sign-in)`.
+3. من `Authentication → Settings → Authorized domains` أضف:
    `dub-beta-ivory.vercel.app`
-   إذا لم يكن موجوداً تلقائياً.
+4. من `Firestore Database → Rules` الصق محتوى `firestore.rules` واضغط `Publish`.
+5. تأكد أن Firestore Database منشأة.
 
-## النشر على Vercel
+## تخصيص نص رسالة التوثيق
 
-ارفع الملفات الموجودة في هذا المجلد، وتأكد أن `index.html` موجود في جذر المشروع. لا تضع الملفات داخل مجلد إضافي داخل مجلد النشر.
+الكود يرسل رسالة التوثيق فعلياً. لتغيير عنوان ونص البريد إلى صياغة مثل:
 
-## مكان مشاهدة المستخدمين
+> مرحباً بك في ذيبان — وثّق حسابك وابدأ الآن
 
-- حسابات الدخول: `Authentication → Users`.
-- بيانات الاسم والهاتف والرصيد: `Firestore Database → Data → profiles`.
+اذهب إلى إعدادات قوالب البريد في Firebase Authentication، وافتح قالب **Email address verification**، وعدّل النص ثم احفظ. هذا التعديل من لوحة Firebase وليس من JavaScript.
 
-عند إنشاء أول مستخدم، ينشئ الموقع مستنداً بهذا الشكل:
+## الرفع على Vercel
+
+ارفع الملفات الموجودة في هذا المجلد، وتأكد أن `index.html` في جذر المشروع مباشرة. بعد النشر افتح موقعك وأنشئ حساباً ببريد حقيقي.
+
+## مسار العميل
 
 ```text
-profiles/{Firebase UID}
+إنشاء حساب
+→ يصل رابط التوثيق للبريد
+→ يضغط العميل الرابط
+→ يرجع لتسجيل الدخول
+→ يدخل البريد وكلمة المرور
+→ تظهر الخدمات
 ```
 
-ويحتوي على `firstName`, `lastName`, `phone`, `birthDate`, `freeRequestsLeft`, `isSubscribed`, و`subscriptionType`.
+## استعادة كلمة المرور
 
-## مهم
+من صفحة الدخول يضغط العميل «نسيت كلمة المرور يا ذيبان؟»، يكتب بريده، ثم يصله رابط تغيير كلمة المرور من Firebase.
 
-إعداد Firebase الظاهر في `firebase.js` هو إعداد Web App عام، وليس Service Account. لا تضع أبداً أي ملف JSON خاص أو Service Account key في الموقع.
+## أماكن البيانات
+
+- الحسابات: `Authentication → Users`.
+- بيانات الحساب: `Firestore → Data → profiles`.
+- حقل حالة التوثيق: `emailVerified`، لكن المصدر الموثوق دائماً هو Firebase Authentication، ولا يستطيع العميل تزويره من المتصفح.
+
+لا تضع أي Service Account أو Secret Key داخل الموقع.

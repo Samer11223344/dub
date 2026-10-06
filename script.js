@@ -1,26 +1,4 @@
 import './firebase.js';
-
-const { auth, onAuthStateChanged, signOut, getProfile } = window.dhibanFirebase;
-
-async function checkNavbar() {
-    const authNavButtons = document.getElementById('authNavButtons');
-    if (!authNavButtons) return;
-
-    onAuthStateChanged(auth, async (user) => {
-        if (!user) return;
-        const profile = await getProfile(user.uid);
-        const name = profile?.firstName || user.displayName || 'يا ذيبان';
-
-        authNavButtons.innerHTML = `
-            <span class="text-cyan-300 font-bold text-sm">مرحباً، ${name} 🐺</span>
-            <a href="services.html" class="px-4 py-2 rounded-xl bg-cyan-500 hover:bg-cyan-400 text-slate-950 font-bold transition text-sm">لوحة الخدمات</a>
-            <button id="logoutBtn" class="px-4 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-red-300 font-bold border border-red-500/20 transition text-sm">خروج</button>
-        `;
-        document.getElementById('logoutBtn').addEventListener('click', async () => {
-            await signOut(auth);
-            window.location.reload();
-        });
-    });
-}
-
-document.addEventListener('DOMContentLoaded', checkNavbar);
+const{auth,onAuthStateChanged,signOut,getProfile}=window.dhibanFirebase;
+const nav=document.getElementById('authNavButtons');
+if(nav)onAuthStateChanged(auth,async user=>{if(!user)return;const p=await getProfile(user.uid).catch(()=>null),name=p?.firstName||user.displayName||'يا ذيبان';nav.innerHTML=`<span class="text-link">مرحباً، ${name} 🐺</span><a class="btn btn-primary-custom" href="services.html">لوحة الخدمات</a><button id="logoutBtn" class="btn btn-danger">خروج</button>`;document.getElementById('logoutBtn').onclick=async()=>{await signOut(auth);location.reload();};});
