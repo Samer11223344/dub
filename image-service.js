@@ -1,6 +1,6 @@
 import './firebase.js';
 
-const { auth, onAuthStateChanged, getProfile } = window.dhibanFirebase;
+const { auth, onAuthStateChanged, getProfile, generateProductImage } = window.dhibanFirebase;
 const modal = document.getElementById('imageModal');
 const openBtn = document.getElementById('openImageService');
 const closeBtn = document.getElementById('closeImageModal');
@@ -20,9 +20,16 @@ const pill = document.getElementById('imageServicePill');
 const reusePrevious = document.getElementById('reusePrevious');
 let profile = null;
 let user = null;
-let selectedTemplate = 'template-a';
+let selectedTemplate = 'فاخر ومضيء';
 let uploadedUrl = '';
 let previous = null;
+
+const styles = [
+    { name: 'مشهد فاخر', style: 'luxury editorial product photography, warm soft studio lighting, elegant premium background, realistic commercial advertising' },
+    { name: 'ستايل عصري', style: 'modern minimal ecommerce product photography, clean gradient background, crisp softbox lighting, polished professional composition' },
+    { name: 'طابع دافئ', style: 'warm natural lifestyle product photography, tasteful materials and subtle shadows, inviting premium atmosphere' },
+    { name: 'حملة جريئة', style: 'bold high-end advertising campaign, dramatic lighting, dynamic composition, vivid but tasteful colors' }
+];
 
 const setStatus = (message, success = false) => {
     status.textContent = message;
@@ -37,11 +44,9 @@ onAuthStateChanged(auth, async (currentUser) => {
     profile = await getProfile(user.uid).catch(() => null);
     const subscriber = Boolean(profile?.isSubscribed);
     const trial = Boolean(profile?.freeRequestsLeft > 0 && !localStorage.getItem(`dhiban-image-used-${user.uid}`));
-    if (subscriber) {
-        pill.textContent = 'متاح ضمن اشتراكك';
-    } else if (trial) {
-        pill.textContent = 'تجربة واحدة متاحة';
-    } else {
+    if (subscriber) pill.textContent = 'متاح ضمن اشتراكك';
+    else if (trial) pill.textContent = 'تجربة واحدة متاحة';
+    else {
         pill.textContent = 'مقفلة — اشترك للمتابعة';
         pill.parentElement.classList.add('service-locked');
         openBtn.textContent = 'الخدمة مقفلة 🔒';
@@ -52,14 +57,13 @@ document.querySelectorAll('.template-card').forEach((card) => {
     card.addEventListener('click', () => {
         document.querySelectorAll('.template-card').forEach((item) => item.classList.remove('selected'));
         card.classList.add('selected');
-        selectedTemplate = card.dataset.template;
+        selectedTemplate = card.querySelector('strong').textContent;
     });
 });
 
 openBtn.addEventListener('click', () => {
     if (!hasAccess()) {
-        setStatus('هذه الخدمة متاحة للمشتركين فقط، أو لمستخدم جديد لديه تجربة واحدة متبقية.');
-        alert('الخدمة مقفلة. اشترك في إحدى الباقات أو استخدم حساباً جديداً لديه تجربة مجانية.');
+        alert('الخدمة متاحة للمشتركين أو لمستخدم جديد لديه تجربة مجانية واحدة.');
         return;
     }
     modal.classList.add('open');
@@ -76,10 +80,10 @@ modal.addEventListener('click', (event) => { if (event.target === modal) closeMo
 document.getElementById('newImageRequest').addEventListener('click', () => {
     resultsState.classList.remove('active');
     setupState.style.display = 'grid';
-    if (previous) {
+    const saved = JSON.parse(localStorage.getItem('dhiban-last-image-style') || 'null');
+    if (saved) {
         reusePrevious.checked = true;
-        selectedTemplate = previous.template;
-        promptInput.value = previous.prompt;
+        promptInput.value = saved.prompt || '';
     }
 });
 
@@ -103,49 +107,62 @@ fileInput.addEventListener('change', () => {
     setStatus('');
 });
 
-generateBtn.addEventListener('click', () => {
+generateBtn.addEventListener('click', async () => {
     if (!hasAccess()) { setStatus('الخدمة غير متاحة لهذا الحساب.'); return; }
-    if (!fileInput.files[0]) { setStatus('ارفع صورة PNG أولاً.'); return; }
-    if (!promptInput.value.trim()) { setStatus('اكتب وصفاً بسيطاً لما تريده في الصورة.'); return; }
-    previous = { template: selectedTemplate, prompt: promptInput.value.trim() };
+    const file = fileInput.files[0];
+    if (!file) { setStatus('ارفع صورة PNG أولاً.'); return; }
+    const description = promptInput.value.trim();
+    if (!description) { setStatus('اكتب وصفاً بسيطاً لما تريده في الصورة.'); return; }
+
+    previous = { template: selectedTemplate, prompt: description };
     localStorage.setItem('dhiban-last-image-style', JSON.stringify(previous));
     setupState.style.display = 'none';
     progressState.classList.add('active');
-    let remaining = 30;
-    countdown.textContent = remaining;
-    progressFill.style.width = '0%';
+    generateBtn.disabled = true;
+    let elapsed = 0;
     const timer = setInterval(() => {
-        remaining -= 1;
-        countdown.textContent = remaining;
-        progressFill.style.width = `${((30 - remaining) / 30) * 100}%`;
-        if (remaining <= 0) {
-            clearInterval(timer);
-            progressState.classList.remove('active');
-            showResults();
-            if (!profile?.isSubscribed) {
-                localStorage.setItem(`dhiban-image-used-${user.uid}`, '1');
-                pill.textContent = 'انتهت التجربة — اشترك للمتابعة';
-                openBtn.textContent = 'الخدمة مقفلة 🔒';
-            }
-        }
+        elapsed += 1;
+        countdown.textContent = Math.max(0, 30 - elapsed);
+        progressFill.style.width = `${Math.min(92, elapsed * 3)}%`;
     }, 1000);
+
+    try {
+        const results = await Promise.all(styles.map((item) => {
+            const prompt = `Edit the provided product image for a Saudi ecommerce brand named Dhiban AI. Preserve the exact product identity, shape, logo, colors, label text, and proportions. Do not add or change readable text. ${item.style}. The merchant selected the style "${selectedTemplate}". Merchant instructions: ${description}. Return one polished product image only, with no explanation.`;
+            return generateProductImage(file, prompt);
+        }));
+        clearInterval(timer);
+        progressFill.style.width = '100%';
+        progressState.classList.remove('active');
+        showResults(results);
+        if (!profile?.isSubscribed) {
+            localStorage.setItem(`dhiban-image-used-${user.uid}`, '1');
+            pill.textContent = 'انتهت التجربة — اشترك للمتابعة';
+            openBtn.textContent = 'الخدمة مقفلة 🔒';
+        }
+    } catch (error) {
+        clearInterval(timer);
+        progressState.classList.remove('active');
+        setupState.style.display = 'grid';
+        generateBtn.disabled = false;
+        setStatus(error?.message || 'تعذر تجهيز الصور. تأكد من تفعيل Gemini وApp Check ثم حاول مرة أخرى.');
+    }
 });
 
-function showResults() {
-    const names = ['مشهد فاخر', 'ستايل عصري', 'طابع دافئ', 'حملة جريئة'];
-    const templates = ['template-a', 'template-b', 'template-c', 'template-d'];
+function showResults(images) {
     resultGrid.innerHTML = '';
-    templates.forEach((template, index) => {
+    images.forEach((imageUrl, index) => {
         const card = document.createElement('article');
         card.className = 'result-card';
-        card.innerHTML = `<div class="result-preview ${template}"><img src="${uploadedUrl}" alt="نتيجة ${names[index]}"></div><h4>${names[index]}</h4><div class="result-actions"><button class="btn btn-outline save-result">حفظ</button><button class="btn btn-primary-custom download-result">تنزيل</button></div>`;
+        card.innerHTML = `<div class="result-preview template-${String.fromCharCode(97 + index)}"><img src="${imageUrl}" alt="${styles[index].name}"></div><h4>${styles[index].name}</h4><div class="result-actions"><button class="btn btn-outline save-result">حفظ</button><button class="btn btn-primary-custom download-result">تنزيل</button></div>`;
         card.querySelector('.save-result').addEventListener('click', (event) => {
+            localStorage.setItem(`dhiban-last-result-${user.uid}`, imageUrl);
             event.currentTarget.textContent = 'تم الحفظ ✓';
             event.currentTarget.disabled = true;
         });
         card.querySelector('.download-result').addEventListener('click', () => {
             const link = document.createElement('a');
-            link.href = uploadedUrl;
+            link.href = imageUrl;
             link.download = `dhiban-${index + 1}.png`;
             link.click();
         });

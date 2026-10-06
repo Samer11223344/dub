@@ -1,4 +1,4 @@
-// Firebase المشترك — ذيبان AI
+// Firebase + Gemini AI Logic — ذيبان AI
 import { initializeApp } from 'https://www.gstatic.com/firebasejs/12.19.0/firebase-app.js';
 import {
     getAuth,
@@ -20,6 +20,12 @@ import {
     setDoc,
     serverTimestamp
 } from 'https://www.gstatic.com/firebasejs/12.19.0/firebase-firestore.js';
+import {
+    getAI,
+    getGenerativeModel,
+    GoogleAIBackend,
+    ResponseModality
+} from 'https://www.gstatic.com/firebasejs/12.19.0/firebase-ai.js';
 
 const firebaseConfig = {
     apiKey: 'AIzaSyAl2opeNhwAqPfYgxKBP85VAYbKS509hPg',
@@ -33,6 +39,11 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db = getFirestore(app);
+const ai = getAI(app, { backend: new GoogleAIBackend() });
+const imageModel = getGenerativeModel(ai, {
+    model: 'gemini-3.1-flash-image',
+    generationConfig: { responseModalities: [ResponseModality.IMAGE] }
+});
 await setPersistence(auth, browserLocalPersistence);
 
 const verificationSettings = {
@@ -86,21 +97,34 @@ async function syncEmailVerification(user) {
     }, { merge: true });
 }
 
+function fileToGenerativePart(file) {
+    return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = () => resolve({
+            inlineData: {
+                data: String(reader.result).split(',')[1],
+                mimeType: file.type
+            }
+        });
+        reader.onerror = reject;
+        reader.readAsDataURL(file);
+    });
+}
+
+async function generateProductImage(file, prompt) {
+    const imagePart = await fileToGenerativePart(file);
+    const result = await imageModel.generateContent([prompt, imagePart]);
+    const parts = result.response.inlineDataParts?.() || [];
+    const generated = parts.find((part) => part.inlineData?.data);
+    if (!generated) throw new Error('لم يعُد Gemini صورة. جرّب وصفاً مختلفاً أو صورة أوضح.');
+    const { data, mimeType } = generated.inlineData;
+    return `data:${mimeType};base64,${data}`;
+}
+
 window.dhibanFirebase = {
-    app,
-    auth,
-    db,
-    onAuthStateChanged,
-    createUserWithEmailAndPassword,
-    signInWithEmailAndPassword,
-    signOut,
-    updateProfile,
-    getProfile,
-    createProfile,
-    syncEmailVerification,
-    sendEmailVerification,
-    sendPasswordResetEmail,
-    reload,
-    verificationSettings,
-    arabicError
+    app, auth, db, onAuthStateChanged, createUserWithEmailAndPassword,
+    signInWithEmailAndPassword, signOut, updateProfile, getProfile,
+    createProfile, syncEmailVerification, sendEmailVerification,
+    sendPasswordResetEmail, reload, verificationSettings, arabicError,
+    generateProductImage
 };
