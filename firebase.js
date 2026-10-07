@@ -21,6 +21,10 @@ import {
     serverTimestamp
 } from 'https://www.gstatic.com/firebasejs/12.19.0/firebase-firestore.js';
 import {
+    initializeAppCheck,
+    ReCaptchaEnterpriseProvider
+} from 'https://www.gstatic.com/firebasejs/12.19.0/firebase-app-check.js';
+import {
     getAI,
     getGenerativeModel,
     GoogleAIBackend,
@@ -39,6 +43,10 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db = getFirestore(app);
+const appCheck = initializeAppCheck(app, {
+    provider: new ReCaptchaEnterpriseProvider('6Ld5qeItAAAAAJl5_KY9eZM4uldYV6KJS3SvGket'),
+    isTokenAutoRefreshEnabled: true
+});
 const ai = getAI(app, { backend: new GoogleAIBackend() });
 const imageModel = getGenerativeModel(ai, {
     model: 'gemini-3.1-flash-image',
