@@ -41,12 +41,12 @@ const firebaseConfig = {
 };
 
 const app = initializeApp(firebaseConfig);
-const auth = getAuth(app);
-const db = getFirestore(app);
-const appCheck = initializeAppCheck(app, {
+initializeAppCheck(app, {
     provider: new ReCaptchaEnterpriseProvider('6Ld5qeItAAAAAJl5_KY9eZM4uldYV6KJS3SvGket'),
     isTokenAutoRefreshEnabled: true
 });
+const auth = getAuth(app);
+const db = getFirestore(app);
 const ai = getAI(app, { backend: new GoogleAIBackend() });
 const imageModel = getGenerativeModel(ai, {
     model: 'gemini-3.1-flash-image',
