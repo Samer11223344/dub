@@ -4,7 +4,10 @@ service cloud.firestore {
   match /databases/{database}/documents {
     match /profiles/{userId} {
       allow read: if request.auth != null && request.auth.uid == userId;
-      allow create: if request.auth != null && request.auth.uid == userId;
+      allow create: if request.auth != null
+                    && request.auth.uid == userId
+                    && request.resource.data.credits == 0
+                    && request.resource.data.totalCreditsPurchased == 0;
       allow update: if request.auth != null
                     && request.auth.uid == userId
                     && request.resource.data.diff(resource.data).affectedKeys().hasOnly([
@@ -14,5 +17,8 @@ service cloud.firestore {
                         || request.auth.token.email_verified == true);
       allow delete: if false;
     }
+
+    match /generations/{generationId} { allow read, write: if false; }
+    match /creditTransactions/{transactionId} { allow read, write: if false; }
   }
 }
