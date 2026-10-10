@@ -1,11 +1,7 @@
-# ذيبان AI — ملاحظة النسخة الحالية
+# ذيبان — Firebase
 
-هذه النسخة تعتمد Firebase للمصادقة وFirestore للملفات الشخصية والرصيد، وتعتمد Replicate لإنشاء الصور من الوصف عبر Vercel API آمن.
+تستخدم النسخة الحالية Firebase للمصادقة وFirestore لحساب الرصيد فقط.
 
-لا تستخدم أي تعليمات Gemini أو ملفات النسخ القديمة. اقرأ الدليل الرئيسي في:
+لا توجد في هذه النسخة خدمات Gemini أو Replicate أو أي مفتاح ذكاء اصطناعي.
 
-```text
-../README-CREDITS-AR.md
-```
-
-المهم: توكن Replicate ومفتاح Firebase Admin لا يوضعان في ملفات الواجهة؛ يضافان فقط إلى Environment Variables في Vercel.
+راجع `README-TOOLS-AR.md` لمعرفة الأدوات والتكاليف وإعداد Vercel.

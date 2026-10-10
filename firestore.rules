@@ -18,7 +18,8 @@ service cloud.firestore {
       allow delete: if false;
     }
 
-    match /generations/{generationId} { allow read, write: if false; }
-    match /creditTransactions/{transactionId} { allow read, write: if false; }
+    match /creditTransactions/{transactionId} {
+      allow read, write: if false;
+    }
   }
 }
